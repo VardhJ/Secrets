@@ -14,13 +14,17 @@ app.use(express.static("public"));
 
 mongoose.connect("mongodb://localhost:27017/userDB");
 
-const userSchema = {
+const userSchema = new mongoose.Schema({
   email: String,
   password: String
-};
+});
+
+//ENCRYPTION:
+const secret = "Thisisourlittlesecret.";  //secret code
+userSchema.plugin(encrypt, { secret: secret, encryptedFields: ["password"] });
+
 
 const User = new mongoose.model("User", userSchema);
-
 
 
 app.get("/", function(req, res){
@@ -42,7 +46,7 @@ app.post("/register", function(req, res){
     password: req.body.password,
   });
 
-  newUser.save(function(err){
+  newUser.save(function(err){       //password is encrypted when save is called
     if(err){
       console.log(err);
     }
@@ -56,7 +60,7 @@ app.post("/login", function(req, res){
   const username = req.body.username;
   const password = req.body.password;
 
-  User.findOne({email: username}, function(err, foundUser){
+  User.findOne({email: username}, function(err, foundUser){       //decrypted password here
     if(err){
       console.log(err);
     }
